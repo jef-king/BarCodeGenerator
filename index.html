@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BarCodeGenerator - CODE128 & CODE39</title>
+    <meta name="description" content="Generate and print custom CODE128 barcode sheets. Adjust prefixes, numbering, layout, size, and color with a live preview.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Jef-king">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Free CODE128 Barcode Generator">
+    <meta property="og:description" content="Generate and print custom CODE128 barcode sheets with a live preview and flexible layout controls.">
+    <title>Free CODE128 Barcode Generator | Printable Sheets</title>
     
     <!-- Professional Google Font for Heading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,67 +20,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JsBarcode library for barcode rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
-    
-    <style>
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 8mm; /* Adjusts the printer margins */
-            }
-
-            /* Strip out backgrounds and normal document flow margins */
-            body, html {
-                margin: 0;
-                padding: 0;
-                background-color: white !important;
-            }
-
-            /* Properly collapse all space taken by non-printable UI */
-            .no-print {
-                display: none !important;
-            }
-
-            /* Reset the main layout wrapper to avoid pushing content down */
-            main {
-                display: block !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            /* Remove the absolute positioning and forced dimensions 
-               so it naturally fits the paper */
-            #printArea {
-                position: static !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                min-height: auto !important; 
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-                box-shadow: none !important;
-            }
-        }
-
-        /* Custom scrollbars for clean UI */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        .heading-font {
-            font-family: 'Montserrat', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col font-sans text-slate-800">
 
@@ -83,7 +30,7 @@
             <div>
                 <h1 class="text-3xl font-[800] tracking-tight text-white drop-shadow-sm heading-font flex items-baseline gap-2">
                     BarCodeGenerator
-                    <span class="text-lg font-[400] text-indigo-200 tracking-wider">CODE128 &bull; CODE39</span>
+                    <span class="text-lg font-[400] text-indigo-200 tracking-wider">CODE128</span>
                 </h1>
             </div>
             <div class="flex items-center gap-3">
@@ -122,7 +69,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-3">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Columns (Grid)</label>
                         <select id="gridCols" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" onchange="updateBarcodes()">
@@ -131,13 +78,6 @@
                             <option value="4">4 Columns</option>
                             <option value="5" selected>5 Columns</option>
                             <option value="6">6 Columns</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Format</label>
-                        <select id="barcodeFormat" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" onchange="updateBarcodes()">
-                            <option value="CODE128" selected>CODE128</option>
-                            <option value="CODE39">CODE39</option>
                         </select>
                     </div>
                 </div>
@@ -194,70 +134,5 @@
         </div>
     </main>
 
-    <script>
-        function updateBarcodes() {
-            const prefix = document.getElementById('prefixInput').value;
-            const startNum = parseInt(document.getElementById('startNum').value) || 1;
-            const totalCount = parseInt(document.getElementById('totalCount').value) || 100;
-            const cols = parseInt(document.getElementById('gridCols').value) || 5;
-            const format = document.getElementById('barcodeFormat').value;
-            const barWidth = parseFloat(document.getElementById('barWidth').value) || 1;
-            const barHeight = parseInt(document.getElementById('barHeight').value) || 15;
-            const barColor = document.getElementById('barColor').value;
-            const gridSpacing = parseInt(document.getElementById('gridSpacing').value) || 0;
-
-            const gridContainer = document.getElementById('barcodeGridContainer');
-            
-            // Set dynamic columns and spacing gap based on user input
-            gridContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-            gridContainer.style.gap = `${gridSpacing}px`;
-            
-            gridContainer.innerHTML = '';
-
-            // Update stats
-            document.getElementById('itemCountDisplay').textContent = totalCount;
-            
-            // Calculate approximate pages (assuming ~100 items per A4 page nicely)
-            const approxPages = Math.ceil(totalCount / (cols * 20));
-            document.getElementById('pageCountDisplay').textContent = `Est. Pages: ${approxPages}`;
-
-            for (let i = 0; i < totalCount; i++) {
-                const currentNum = startNum + i;
-                const barcodeValue = prefix + currentNum;
-
-                // Create item cell container
-                const cell = document.createElement('div');
-                cell.className = "flex flex-col items-center justify-center p-1.5 border border-slate-200 rounded bg-white text-center overflow-hidden h-full";
-                
-                // SVG element for barcode with correct XML namespace
-                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                svg.id = `barcode-${i}`;
-                cell.appendChild(svg);
-
-                gridContainer.appendChild(cell);
-
-                // Render barcode using JsBarcode
-                try {
-                    JsBarcode(svg, barcodeValue, {
-                        format: format,
-                        lineColor: barColor,
-                        width: barWidth,
-                        height: barHeight,
-                        displayValue: true,
-                        fontSize: 10,
-                        margin: 2
-                    });
-                } catch (e) {
-                    // Fallback for invalid barcode formats/chars
-                    cell.innerHTML = `<span class="text-[10px] text-red-500 font-semibold">Invalid: ${barcodeValue}</span>`;
-                }
-            }
-        }
-
-        // Initialize on page load
-        window.onload = function() {
-            updateBarcodes();
-        };
-    </script>
 </body>
 </html>
