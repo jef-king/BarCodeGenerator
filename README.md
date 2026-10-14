@@ -1,5 +1,7 @@
 # BarCodeGenerator
 
+[Link](https://jef-king.github.io/BarCodeGenerator/)
+
 BarCodeGenerator is a browser-based tool for creating batches of printable CODE128 barcodes. Configure a numbered series, preview the generated labels, and print the sheet on A4 paper.
 
 ## Project Scope
